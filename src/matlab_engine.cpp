@@ -1,40 +1,35 @@
-#include "engine.h"
+#include "MatlabDataArray.hpp"
+#include "MatlabEngine.hpp"
 #include <iostream>
-#include <stdio.h>
+void callSQRT() {
 
-int main(int argc, char **argv) {
-    // Create arrays of Matlab type
-    mxArray *X = mxCreateDoubleMatrix(1, 1, mxREAL);
-    mxArray *Y = mxCreateDoubleMatrix(1, 1, mxREAL);
+    using namespace matlab::engine;
 
-    // Matlab arrays --> double arrays
-    double *ptrToMatX = reinterpret_cast<double *>(mxGetData(X));
-    double *ptrToMatY = reinterpret_cast<double *>(mxGetData(Y));
+    // Start MATLAB engine synchronously
+    std::unique_ptr<MATLABEngine> matlabPtr = startMATLAB();
 
-    // Manipulate ordinary c++ arrays
-    ptrToMatX[0] = 1;
-    ptrToMatY[0] = 2;
+    //Create MATLAB data array factory
+    matlab::data::ArrayFactory factory;
 
-    // Start the Matlab Engine
-    engine *ep;
-    if (!(ep = engOpen("\0"))) {
-        fprintf(stderr, "\nCan't start MATLAB engine\n");
-        return EXIT_FAILURE;
+    // Define a four-element typed array
+    matlab::data::TypedArray<double> const argArray =
+        factory.createArray({ 1,4 }, { -2.0, 2.0, 6.0, 8.0 });
+
+    // Call MATLAB sqrt function on the data array
+    matlab::data::Array const results = matlabPtr->feval(u"sqrt", argArray);
+
+    // Display results
+    for (int i = 0; i < results.getNumberOfElements(); i++) {
+        double a = argArray[i];
+        std::complex<double> v = results[i];
+        double realPart = v.real();
+        double imgPart = v.imag();
+        std::cout << "Square root of " << a << " is " <<
+            realPart << " + " << imgPart << "i" << std::endl;
     }
+}
 
-    // Copy the variables into Matlab prompt
-    engPutVariable(ep, "X", X);
-    engPutVariable(ep, "Y", Y);
-
-    // Call the function
-    engEvalString(ep, "Z = test_function(X, Y)");
-
-    // Copy the variable from Matlab prompt to our code
-    mxArray *Z = engGetVariable(ep, "Z");
-
-    // Convert this variable to ordinary c++ array and show it
-    double *ptrToMatZ = reinterpret_cast<double *>(mxGetData(Z));
-    std::cout << "result is " << *ptrToMatZ << std::endl;
-
-    return EXIT_SUCCESS;
+int main() {
+    callSQRT();
+    return 0;
 }
