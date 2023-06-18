@@ -14,3 +14,7 @@ A small test to show that running Matlab code from CMake build c++ files is inde
 | Windows  | `PATH`              | `matlabroot\extern\bin\win64`                             |
 | macOS    | `DYLD_LIBRARY_PATH` | `matlabroot/extern/bin/maci64`                            |
 | Linux    | `LD_LIBRARY_PATH`   | `matlabroot/extern/bin/glnxa64:matlabroot/sys/os/glnxa64` |
+
+
+## Potential gotcha's
+Only run in MinGW bash.
